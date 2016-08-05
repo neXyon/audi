@@ -3,6 +3,7 @@ SET(HEADERS_LIST
 	functions_from_d.hpp
 	audi.hpp
 	gdual.hpp
+	neural_net.hpp
 )
 
 # NOTE: this dummy cpp file is here with the sole purpose of getting the headers

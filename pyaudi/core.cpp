@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../src/audi.hpp"
+#include "../src/neural_net.hpp"
 
 #if defined(__clang__) || defined(__GNUC__)
     #pragma GCC diagnostic push
@@ -20,16 +21,39 @@
 #include "pybind11/include/pybind11/pybind11.h"
 #include "pybind11/include/pybind11/stl.h"
 #include "pybind11/include/pybind11/cast.h"
+#include "pybind11/include/pybind11/functional.h"
 
 #if defined(__clang__) || defined(__GNUC__)
     #pragma GCC diagnostic pop
 #endif
+
+PYBIND11_DECLARE_HOLDER_TYPE(DenseLayer, std::shared_ptr<DenseLayer>)
 
 using namespace audi;
 namespace py = pybind11;
 
 PYBIND11_PLUGIN(_core) {
     py::module m("_core", "pyaudi's core module");
+
+    py::class_<DenseLayer, std::shared_ptr<DenseLayer>>(m,"DenseLayer")
+        .def(py::init<unsigned int, unsigned int, unsigned int, const std::function<double()>&, const std::function<double()>&, const std::function<gdual(const gdual&)>&>())
+        //.def(py::init<unsigned int, unsigned int, unsigned int, const std::function<double()>&, const std::function<double()>&>())
+        .def_property_readonly("num_outputs",&DenseLayer::get_outputs)
+        .def("__call__",&DenseLayer::operator())
+        .def("set_parameters",&DenseLayer::set_parameters)
+        .def("get_parameters",&DenseLayer::get_parameters)
+    ;
+
+    py::class_<NeuralNetwork>(m,"NeuralNetwork")
+        .def(py::init<int>())
+        .def_property_readonly("num_inputs",&NeuralNetwork::get_inputs)
+        .def_property_readonly("num_outputs",&NeuralNetwork::get_outputs)
+        .def_property_readonly("num_layers",&NeuralNetwork::get_layer_count)
+        .def("__call__",&NeuralNetwork::operator())
+        //.def("add_layer",&NeuralNetwork::add_layer)
+        .def("add_layer",[](NeuralNetwork& instance, std::shared_ptr<DenseLayer> layer) { instance.add_layer(layer); })
+        .def("get_layers",&NeuralNetwork::get_layers)
+    ;
 
     py::class_<gdual>(m,"gdual")
         .def(py::init<>())
